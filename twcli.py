@@ -2,69 +2,62 @@
 from __future__ import print_function
 import os
 import sys
-import argparse
 import configparser
 import json
 from requests_oauthlib import OAuth1Session
+import fire
 
 
-def main():
-    path = os.path.join(os.environ['HOME'], '.twclirc')
-    if not os.path.exists(path):
-        print("You have to save keys and tokens in ~/.twclirc .")
-        sys.exit(1)
+class Twcli(object):
+    def __init__(self):
+        path = os.path.join(os.environ['HOME'], '.twclirc')
+        if not os.path.exists(path):
+            print("You have to save keys and tokens in ~/.twclirc .")
+            sys.exit(1)
 
-    config = configparser.ConfigParser()
-    config.read(path)
-    config.sections()
+        config = configparser.ConfigParser()
+        config.read(path)
+        config.sections()
 
-    twitter = OAuth1Session(
-        config["twcli"]["CONSUMER_KEY"].strip(),
-        config["twcli"]["CONSUMER_SECRET"].strip(),
-        config["twcli"]["ACCESS_TOKEN"].strip(),
-        config["twcli"]["ACCESS_TOKEN_SECRET"].strip())
+        self.__twitter = OAuth1Session(
+            config["twcli"]["CONSUMER_KEY"].strip(),
+            config["twcli"]["CONSUMER_SECRET"].strip(),
+            config["twcli"]["ACCESS_TOKEN"].strip(),
+            config["twcli"]["ACCESS_TOKEN_SECRET"].strip())
 
-    args = parse()
-
-    if args.mode in ["timeline", "tl"]:
+    def timeline(self, count=5):
         url_timeline = "https://api.twitter.com/1.1/statuses/home_timeline.json"
-
-        params = {'count': args.count}
-        req = twitter.get(url_timeline, params=params)
+        params = {'count': count}
+        req = self.__twitter.get(url_timeline, params=params)
 
         if req.status_code == 200:
             timeline = json.loads(req.text)
             for tweet in timeline:
                 print(tweet['user']['name'] + '::' + tweet['text'])
                 print(tweet['created_at'])
-                print(
-                    '-----------------------------------------------------------------------------')
+                print('------------------------------------'
+                      + '-----------------------------------------')
         else:
             print("ERROR: %d" % req.status_code)
-    else:
-        if args.status == "":
-            print("You have to set your tweet content")
-            sys.exit(1)
 
+    def tl(self, count=5):
+        self.timeline(count)
+
+    def tweet(self, status):
         url_tweet = "https://api.twitter.com/1.1/statuses/update.json"
-        params = {'status': args.status}
-        req = twitter.post(url_tweet, params=params)
+        params = {'status': status}
+        req = self.__twitter.post(url_tweet, params=params)
         if req.status_code == 200:
             print("Tweet Succees")
         else:
             print("ERROR: %d" % req.status_code)
 
-    print("program end.")
+    def tw(self, status):
+        self.tweet(status)
 
 
-def parse():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('mode', help='timeline(tl) or tweet(tw)')
-    parser.add_argument('--status', '-s',  default="", help='')
-    parser.add_argument('--count', '-c', type=int, default=5,
-                        help='# of tweets to show')
-    args = parser.parse_args()
-    return args
+def main():
+    fire.Fire(Twcli(), name="twcli")
 
 
 if __name__ == '__main__':
