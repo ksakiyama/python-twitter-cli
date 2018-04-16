@@ -7,6 +7,7 @@ import configparser
 import json
 from requests_oauthlib import OAuth1Session
 
+
 def main():
     path = os.path.join(os.environ['HOME'], '.twclirc')
     if not os.path.exists(path):
