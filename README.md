@@ -39,6 +39,9 @@ ACCESS_TOKEN_SECRET = XXXXXXXXXXXXXXXXXXXXX
 * Twitter APIを試してみたい人の参考プログラムになれば
 
 ## Dependencies
+* [Python Fire](https://github.com/google/python-fire)
+* [Requests-OAuthlib](https://github.com/requests/requests-oauthlib)
+
 ```
-$ pip install requests requests_oauthlib
+$ pip install requests requests_oauthlib fire
 ```
